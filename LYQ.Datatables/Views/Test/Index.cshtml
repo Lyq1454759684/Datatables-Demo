@@ -1,0 +1,120 @@
+﻿@{
+    ViewBag.Title = "Datatables demo";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Header{@Styles.Render("~/datatable/css")}
+
+<div class="col-md-12">
+    <h3>User Information</h3>
+
+    <form class="form-horizontal">
+        <div class="form-group">
+            <label class="control-label col-sm-1">User</label>
+            <div class="col-sm-3">
+                <input type="text" class="form-control col-sm-3" id="txtUser" />
+            </div>
+        </div>
+
+        <div class=" form-group">
+            <div class="col-sm-1"></div>
+            <div class="col-sm-11">
+                <button type="button" class="btn btn-info" onclick="Search();">Search</button>
+                <button type="button" class="btn btn-info" onclick="Add();">Add</button>
+                <button type="reset" class="btn btn-info">Reset</button>
+            </div>
+        </div>
+    </form>
+
+
+
+    <table id="tblUser" class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <td>User</td>
+                <td>ID</td>
+                <td>Gender</td>
+                <td>Age</td>
+                <td>Position</td>
+                <td>Grade</td>
+                <td>Action</td>
+            </tr>
+        </thead>
+    </table>
+</div>
+
+@section Footer{@Scripts.Render("~/datatable/js")
+
+<script type="text/javascript">
+
+    var datatable;
+
+    $(function () {
+        datatable = $('#tblUser').DataTable({
+            searching: false, //查询
+            processing: true,
+            serverSide: true, //服务端还是客户端分页
+            paging: true, //是否有分页
+            pagingType:'full_numbers', //分页按钮显示形式
+            rowId: 'ID', //每一行的ID
+            ordering: false,
+            ajax: function (data, callback, settings) {
+                var params = {
+                    userName: $("#txtUser").val(),
+                    pageIndex: (data.start / data.length) + 1,
+                    pageSize: data.length,
+                };
+                $.ajax({
+                    url: "@Url.Action("PageList", "Test")",
+                    type: "post",
+                    data: $.extend({}, data, params, true),
+                    dataType: "json",
+                    success: function (serverData) {
+                        callback(serverData);
+                    }
+                });
+            },
+                columns: [
+                    { data: "Name" },
+                    { data: "ID" },
+                    { data: "Gender" },
+                    { data: "Age" },
+                    { data: "Position" },
+                    { data: "Grade" },
+                    null
+                ],
+                columnDefs: [
+                    {
+                        targets: -1,
+                        data: null,
+                        width: "150px",
+                        sClass: 'text-center',
+                        orderable: false,
+                        render: function (data, type, row) {
+                            var html = "<a onclick='Update(\"" + row.ID + "\");' class='btn btn-info btn-xs'>Update</a> "
+                            html += "<a onclick='Delete(\"" + row.ID + "\");' class='btn btn-default btn-xs'>Delete</a> ";
+                            return html;
+                        }
+                    }]
+        });
+
+    })
+
+    function Search() {
+        datatable.ajax.reload();
+    }
+
+    function Add() {
+        alert('This is add function.');
+    }
+
+    function Update(rowID) {
+        alert('This is update function. rowID is ' + rowID);
+    }
+
+    function Delete(rowID) {
+        alert("This is delete function. rowID is " + rowID);
+    }
+
+</script>
+}
